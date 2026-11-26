@@ -25,33 +25,41 @@ function createAudio(): AudioApi {
   }
 
   function tone(freq: number, when: number, dur: number, type: OscillatorType, gain: number) {
-    const c = ac();
-    if (!c) return;
-    const o = c.createOscillator();
-    const g = c.createGain();
-    o.type = type;
-    o.frequency.setValueAtTime(freq, when);
-    g.gain.setValueAtTime(0.0001, when);
-    g.gain.exponentialRampToValueAtTime(Math.max(0.001, gain), when + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-    o.connect(g);
-    g.connect(c.destination);
-    o.start(when);
-    o.stop(when + dur + 0.03);
+    try {
+      const c = ac();
+      if (!c) return;
+      const o = c.createOscillator();
+      const g = c.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, when);
+      g.gain.setValueAtTime(0.0001, when);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.001, gain), when + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+      o.connect(g);
+      g.connect(c.destination);
+      o.start(when);
+      o.stop(when + dur + 0.03);
+    } catch {
+      /* a missing audio device must not freeze the question */
+    }
   }
 
   return {
     unlock() {
-      const c = ac();
-      if (!c) return;
-      if (c.state === 'suspended') void c.resume();
-      const o = c.createOscillator();
-      const g = c.createGain();
-      g.gain.value = 0;
-      o.connect(g);
-      g.connect(c.destination);
-      o.start();
-      o.stop(c.currentTime + 0.02);
+      try {
+        const c = ac();
+        if (!c) return;
+        if (c.state === 'suspended') void c.resume();
+        const o = c.createOscillator();
+        const g = c.createGain();
+        g.gain.value = 0;
+        o.connect(g);
+        g.connect(c.destination);
+        o.start();
+        o.stop(c.currentTime + 0.02);
+      } catch {
+        /* ignore */
+      }
     },
     pop() {
       const c = ac();

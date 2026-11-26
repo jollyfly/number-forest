@@ -69,12 +69,11 @@ export async function playCart(ctx: PlayCtx, q: CartQ): Promise<Outcome> {
           onDrop: (x, y) => {
             if (busy || out.locked) return;
             const dest = nearestCenter(x, y, [...bed.querySelectorAll<HTMLElement>('.cell')]);
+            if (!dest) return;
+            const di = Number(dest.dataset.cell);
+            if (di === index || cells[di] != null) return;
             cells[index] = null;
-            if (dest) {
-              const di = Number(dest.dataset.cell);
-              if (cells[di] == null) cells[di] = id;
-              else cells[index] = id;
-            }
+            cells[di] = id;
             ctx.audio.place();
             render();
           },
@@ -106,10 +105,15 @@ export async function playCart(ctx: PlayCtx, q: CartQ): Promise<Outcome> {
         onDrop: (x, y) => {
           if (busy || out.locked) return;
           const dest = nearestCenter(x, y, [...bed.querySelectorAll<HTMLElement>('.cell')]);
-          if (!dest) return;
-          const di = Number(dest.dataset.cell);
-          if (cells[di] != null) return;
-          cells[di] = id;
+          if (!dest) {
+            const empty = cells.findIndex((cell) => cell == null);
+            if (empty < 0) return;
+            cells[empty] = id;
+          } else {
+            const di = Number(dest.dataset.cell);
+            if (cells[di] != null) return;
+            cells[di] = id;
+          }
           ctx.audio.place();
           render();
         },

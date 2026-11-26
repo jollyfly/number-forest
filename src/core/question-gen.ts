@@ -1,5 +1,5 @@
 import { BEAD_IDS, type BeadId } from '../content/beads';
-import { choicesFor, hashString, mulberry32, pick, randInt, rngOf, shuffle, type Rng } from './random';
+import { choicesFor, mulberry32, pick, randInt, rngOf, shuffle, type Rng } from './random';
 
 export type Level = 1 | 2 | 3 | 4;
 export type GameId = 'count' | 'cart' | 'add' | 'frog' | 'pattern';
@@ -385,29 +385,47 @@ export function generateQuestion(id: GameId, opts: GenOpts): Question {
   return genPattern(opts);
 }
 
-/** Stable scatter positions for a count question. */
-export function scatterSlots(count: number, key: string): { x: number; y: number }[] {
-  const rng = mulberry32(hashString(key));
-  const base = shuffle(rng, PINE_SLOTS).slice(0, count);
-  return base.map((s) => ({
-    x: clamp(s.x + (rng() * 12 - 6), 14, 86),
-    y: clamp(s.y + (rng() * 10 - 5), 24, 58),
-  }));
+export interface PineSpot {
+  x: number;
+  y: number;
+  size: number;
 }
 
-function clamp(n: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, n));
+/**
+ * Centers for the pinecones on the tree. Spacing is at least the drawn size,
+ * so a cone cannot hide the one next to it. Scatter only jitters inside that gap.
+ */
+export function layoutPines(
+  count: number,
+  width: number,
+  height: number,
+  scatter: boolean,
+  seed: number,
+): PineSpot[] {
+  const rng = mulberry32(seed);
+  const left = width * 0.24;
+  const right = Math.max(left + 80, width * 0.76);
+  const top = height * 0.14;
+  const bottom = Math.max(top + 80, height * 0.6);
+  const availW = right - left;
+  const availH = bottom - top;
+  const cols = Math.min(count, Math.max(1, Math.floor(availW / 84)));
+  const rows = Math.ceil(count / cols);
+  const stepX = availW / cols;
+  const stepY = availH / rows;
+  const size = Math.min(92, Math.max(56, Math.floor(Math.min(stepX, stepY) - 10)));
+  const jitterRoom = Math.max(0, Math.min(stepX, stepY) - size) / 2 - 1;
+  const spots: PineSpot[] = [];
+  for (let i = 0; i < count; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    let x = left + (col + 0.5) * stepX;
+    let y = top + (row + 0.5) * stepY;
+    if (scatter && jitterRoom > 0) {
+      x += (rng() * 2 - 1) * jitterRoom;
+      y += (rng() * 2 - 1) * jitterRoom;
+    }
+    spots.push({ x, y, size });
+  }
+  return spots;
 }
-
-export const PINE_SLOTS: { x: number; y: number }[] = [
-  { x: 40, y: 34 },
-  { x: 50, y: 28 },
-  { x: 60, y: 32 },
-  { x: 46, y: 44 },
-  { x: 58, y: 46 },
-  { x: 38, y: 48 },
-  { x: 54, y: 50 },
-  { x: 64, y: 40 },
-  { x: 44, y: 54 },
-  { x: 56, y: 38 },
-];

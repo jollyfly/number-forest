@@ -1,7 +1,8 @@
 import { pineconeSvg, treeSvg } from '../art/objects';
 import { lines, numCN } from '../content/lines';
 import { delay } from '../core/delay';
-import { PINE_SLOTS, scatterSlots, type CountQ } from '../core/question-gen';
+import { layoutPines, type CountQ } from '../core/question-gen';
+import { hashString } from '../core/random';
 import { el } from '../ui/dom';
 import { celebrate, encourage } from './feedback';
 import { createOutcome } from './outcome';
@@ -19,7 +20,9 @@ export async function playCount(ctx: PlayCtx, q: CountQ): Promise<Outcome> {
   const layer = el('div', 'pine-layer');
   ctx.stage.append(tree, layer);
 
-  const slots = q.layout === 'scatter' ? scatterSlots(q.count, q.key) : PINE_SLOTS.slice(0, q.count);
+  const areaW = layer.clientWidth || ctx.stage.clientWidth || 800;
+  const areaH = layer.clientHeight || ctx.stage.clientHeight || 480;
+  const slots = layoutPines(q.count, areaW, areaH, q.layout === 'scatter', hashString(q.key));
   let counted = 0;
   const pines: HTMLButtonElement[] = [];
 
@@ -27,8 +30,10 @@ export async function playCount(ctx: PlayCtx, q: CountQ): Promise<Outcome> {
     const button = el('button', 'pine-btn');
     button.type = 'button';
     button.dataset.pine = String(i);
-    button.style.left = `${pos.x}%`;
-    button.style.top = `${pos.y}%`;
+    button.style.left = `${pos.x}px`;
+    button.style.top = `${pos.y}px`;
+    button.style.width = `${pos.size}px`;
+    button.style.height = `${pos.size}px`;
     button.setAttribute('aria-label', '松果');
     button.innerHTML = pineconeSvg();
     button.addEventListener('click', () => {

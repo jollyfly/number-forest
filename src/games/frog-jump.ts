@@ -44,20 +44,23 @@ export async function playFrog(ctx: PlayCtx, q: FrogQ): Promise<Outcome> {
   ctx.stage.append(layout);
 
   let current = q.start;
-  const place = () => {
+  const place = (animate: boolean) => {
     const pad = pads.querySelector<HTMLElement>(`[data-pad="${current}"]`);
     if (!pad) return;
+    if (!animate) frogEl.style.transition = 'none';
     frogEl.style.left = `${pad.offsetLeft + pad.offsetWidth / 2 - frogEl.offsetWidth / 2}px`;
+    pad.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'auto' });
+    if (!animate) {
+      void frogEl.offsetWidth;
+      frogEl.style.transition = '';
+    }
   };
-  const onResize = () => place();
+  const onResize = () => place(false);
   window.addEventListener('resize', onResize);
   ctx.signal.addEventListener('abort', () => window.removeEventListener('resize', onResize));
 
-  place();
-  requestAnimationFrame(() => {
-    place();
-    ctx.stage.dataset.ready = '1';
-  });
+  place(false);
+  ctx.stage.dataset.ready = '1';
 
   const line = frogLine(q);
   ctx.setLine(line);
@@ -76,7 +79,7 @@ export async function playFrog(ctx: PlayCtx, q: FrogQ): Promise<Outcome> {
     const step = to > current ? 1 : -1;
     while (current !== to && !ctx.signal.aborted) {
       current += step;
-      place();
+      place(true);
       frogEl.classList.remove('is-hop');
       void frogEl.offsetWidth;
       frogEl.classList.add('is-hop');
