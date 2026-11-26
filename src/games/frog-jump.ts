@@ -18,27 +18,11 @@ export async function playFrog(ctx: PlayCtx, q: FrogQ): Promise<Outcome> {
 
   const layout = el('div', 'frog-layout');
   const task = el('div', 'hop-task');
-  const showArrows = !q.showEquation || ctx.extraHint;
   if (q.showEquation) {
     task.innerHTML = equationHtml(q.start, q.delta > 0 ? '+' : '-', Math.abs(q.delta));
   }
-  if (showArrows) {
-    const arrows = el('div', 'hop-arrows');
-    const dir = q.delta > 0 ? 'right' : 'left';
-    for (let i = 0; i < Math.abs(q.delta); i++) {
-      const chip = el('span', 'hop-chip');
-      chip.innerHTML = arrowSvg(dir);
-      arrows.append(chip);
-    }
-    task.append(arrows);
-  }
-  if (!q.showEquation) {
-    const start = el('div', 'mini-num');
-    start.innerHTML = digitSvg(q.start);
-    const count = el('div', 'mini-num');
-    count.innerHTML = digitSvg(Math.abs(q.delta));
-    task.prepend(start);
-    task.append(count);
+  if (!q.showEquation || ctx.extraHint) {
+    task.append(hopMarks(q.delta));
   }
 
   const scroller = el('div', 'pad-scroll');
@@ -49,6 +33,7 @@ export async function playFrog(ctx: PlayCtx, q: FrogQ): Promise<Outcome> {
     pad.dataset.pad = String(n);
     pad.setAttribute('aria-label', numCN(n));
     pad.innerHTML = `<span class="pad-art">${lilySvg()}</span><span class="pad-num">${digitSvg(n)}</span>`;
+    if (n === q.start) pad.classList.add('is-start');
     pads.append(pad);
   }
   const frogEl = el('div', 'frog-piece');
@@ -127,18 +112,7 @@ export async function playFrog(ctx: PlayCtx, q: FrogQ): Promise<Outcome> {
     await encourage(ctx);
     await hop(q.start);
     showPath();
-    if (!q.showEquation || wrongs >= 1) {
-      if (!task.querySelector('.hop-arrows')) {
-        const arrows = el('div', 'hop-arrows');
-        const dir = q.delta > 0 ? 'right' : 'left';
-        for (let i = 0; i < Math.abs(q.delta); i++) {
-          const chip = el('span', 'hop-chip');
-          chip.innerHTML = arrowSvg(dir);
-          arrows.append(chip);
-        }
-        task.append(arrows);
-      }
-    }
+    if (!task.querySelector('.hop-arrows')) task.append(hopMarks(q.delta));
     if (wrongs >= 2) {
       await hop(q.answer);
       out.mark(false);
@@ -153,6 +127,17 @@ export async function playFrog(ctx: PlayCtx, q: FrogQ): Promise<Outcome> {
   }
 
   return out.promise;
+}
+
+function hopMarks(delta: number): HTMLElement {
+  const arrows = el('div', 'hop-arrows');
+  const dir = delta > 0 ? 'right' : 'left';
+  for (let i = 0; i < Math.abs(delta); i++) {
+    const chip = el('span', 'hop-chip');
+    chip.innerHTML = arrowSvg(dir);
+    arrows.append(chip);
+  }
+  return arrows;
 }
 
 function frogLine(q: FrogQ): string {

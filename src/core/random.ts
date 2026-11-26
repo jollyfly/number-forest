@@ -44,12 +44,11 @@ export function hashString(s: string): number {
   return h >>> 0;
 }
 
-/** Three nearby choices that always include the answer. */
+/** Three choices: the answer and its two nearest neighbours, so a miss is off-by-one. */
 export function choicesFor(answer: number, min: number, max: number, rng: Rng): number[] {
   const pool: number[] = [];
   for (let n = min; n <= max; n++) if (n !== answer) pool.push(n);
   pool.sort((a, b) => Math.abs(a - answer) - Math.abs(b - answer) || a - b);
-  const nearest = pool.slice(0, Math.min(4, pool.length));
-  const picked = shuffle(rng, nearest).slice(0, 2);
-  return shuffle(rng, [answer, picked[0]!, picked[1]!]);
+  const nearest = pool.slice(0, 2);
+  return shuffle(rng, [answer, nearest[0]!, nearest[1]!]);
 }

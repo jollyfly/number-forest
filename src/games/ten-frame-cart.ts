@@ -116,6 +116,8 @@ export async function playCart(ctx: PlayCtx, q: CartQ): Promise<Outcome> {
       });
       pile.append(pine);
     }
+    const filled = cells.filter((cell) => cell != null).length;
+    check.classList.toggle('is-ready', filled === q.target);
   };
 
   render();

@@ -48,7 +48,14 @@ export function renderMap(
   const orchard = clearing('clearing-orchard', '<div class="bush bush-c"></div>');
   orchard.append(spot('add', `${basketSvg()}${mini(appleSvg())}`, '果篮', '果篮加法'));
   const pond = clearing('clearing-pond', '<div class="pond-water"></div>');
-  pond.append(spot('frog', `${lilySvg()}${frog()}`, '荷叶', '呱呱跳荷叶'));
+  pond.append(
+    spot(
+      'frog',
+      `<div class="spot-frog-scene"><div class="spot-lily">${lilySvg()}</div><div class="spot-frog">${frog()}</div></div>`,
+      '荷叶',
+      '呱呱跳荷叶',
+    ),
+  );
   const tower = clearing('clearing-tower', '<div class="tower"></div>');
   tower.append(spot('pattern', owl(), '找规律', '找规律'));
 

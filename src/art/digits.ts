@@ -1,39 +1,33 @@
 import { svg } from './svg';
 
-/** Chunky pebble digits. Readable without a font, and they double as tracing shapes later. */
-const MATRIX: Record<string, string[]> = {
-  '0': ['01110', '10001', '10001', '10001', '10001', '10001', '01110'],
-  '1': ['00100', '01100', '00100', '00100', '00100', '00100', '01110'],
-  '2': ['01110', '10001', '00001', '00110', '01000', '10000', '11111'],
-  '3': ['11110', '00001', '00001', '01110', '00001', '00001', '11110'],
-  '4': ['10010', '10010', '10010', '11111', '00010', '00010', '00010'],
-  '5': ['11111', '10000', '11110', '00001', '00001', '10001', '01110'],
-  '6': ['01110', '10000', '10000', '11110', '10001', '10001', '01110'],
-  '7': ['11111', '00001', '00010', '00100', '01000', '01000', '01000'],
-  '8': ['01110', '10001', '10001', '01110', '10001', '10001', '01110'],
-  '9': ['01110', '10001', '10001', '01111', '00001', '00001', '01110'],
+/** Rounded picture-book numerals. One thick stroke, no font file. */
+const GLYPH: Record<string, string> = {
+  '0': 'M50 24 C78 24 86 46 86 70 C86 94 78 116 50 116 C22 116 14 94 14 70 C14 46 22 24 50 24 Z',
+  '1': 'M36 48 L58 26 V116 M32 116 H80',
+  '2': 'M22 50 C22 26 44 16 64 32 C84 48 80 72 58 88 L24 116 H84',
+  '3': 'M24 38 H68 C68 38 88 44 76 62 C94 70 92 108 64 118 C40 128 20 110 28 92',
+  '4': 'M64 22 V118 M64 22 L20 76 H88',
+  '5': 'M80 30 H34 L26 62 H60 C84 62 90 92 64 110 C42 126 16 108 24 88',
+  '6': 'M74 40 C60 20 28 26 26 60 C24 98 44 120 66 110 C88 100 86 72 62 64 C40 56 28 68 26 60',
+  '7': 'M20 32 H82 L40 118',
+  '8': 'M50 68 C28 68 16 54 28 40 C38 26 66 24 76 40 C86 56 72 68 50 68 C24 68 14 86 28 104 C40 120 74 120 84 102 C94 84 76 68 50 68',
+  '9': 'M26 100 C40 120 72 114 74 80 C76 42 56 18 34 28 C12 38 14 66 38 74 C58 82 72 70 74 80',
 };
 
-function pebbles(rows: string[], ox: number): string {
-  const dots: string[] = [];
-  rows.forEach((row, y) => {
-    for (let x = 0; x < row.length; x++) {
-      if (row[x] === '1') dots.push(`<circle cx="${ox + x}" cy="${y}" r="0.46" fill="#2c3a2e"/>`);
-    }
-  });
-  return dots.join('');
+function stroke(d: string): string {
+  return `<path d="${d}" fill="none" stroke="#2c3a2e" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>`;
 }
 
 export function digitSvg(n: number): string {
-  const s = String(Math.max(0, Math.min(99, Math.floor(n))));
-  if (s.length === 1) {
-    return svg(pebbles(MATRIX[s] ?? MATRIX['0']!, 0), '-0.6 -0.7 5.2 7.4', 'class="digit"');
+  const text = String(Math.max(0, Math.min(99, Math.floor(Math.abs(n)))));
+  if (text.length === 1) {
+    return svg(stroke(GLYPH[text] ?? GLYPH['0']!), '4 8 92 124', 'class="digit"');
   }
-  const body = s
+  const body = text
     .split('')
-    .map((ch, i) => pebbles(MATRIX[ch] ?? MATRIX['0']!, i * 6))
+    .map((ch, i) => `<g transform="translate(${i * 70} 0)">${stroke(GLYPH[ch] ?? GLYPH['0']!)}</g>`)
     .join('');
-  return svg(body, '-0.6 -0.7 11.2 7.4', 'class="digit digit-wide"');
+  return svg(body, '4 8 162 124', 'class="digit digit-wide"');
 }
 
 export function opSvg(op: '+' | '-' | '='): string {

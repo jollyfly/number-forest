@@ -12,6 +12,10 @@ export function renderStart(root: HTMLElement, onStart: () => void): void {
   const screen = el('div', 'screen start-screen sky-map');
   screen.dataset.screen = 'start';
 
+  const sun = el('div', 'sun');
+  const hillL = el('div', 'hill hill-l');
+  const hillR = el('div', 'hill hill-r');
+  const meadow = el('div', 'meadow');
   const cloudA = el('div', 'float-cloud cloud-a');
   cloudA.innerHTML = cloudSvg();
   const cloudB = el('div', 'float-cloud cloud-b');
@@ -32,7 +36,7 @@ export function renderStart(root: HTMLElement, onStart: () => void): void {
   note.hidden = true;
   note.textContent = lines.noVoice;
 
-  screen.append(cloudA, cloudB, sign, hero, button, note);
+  screen.append(sun, hillL, hillR, meadow, cloudA, cloudB, sign, hero, button, note);
   root.append(screen);
 
   const off = onVoiceStatus((has) => {
